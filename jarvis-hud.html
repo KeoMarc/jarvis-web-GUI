@@ -1,0 +1,1488 @@
+M.A.R.C.I 
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M.A.R.C.I — M.A.R.C.I Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --void: #03060a;
+      --panel: #070d13;
+      --panel-2: #0a131a;
+      --cyan: #4fe0ff;
+      --cyan-soft: rgba(79, 224, 255, 0.5);
+      --cyan-dim: #164653;
+      --amber: #ffb24a;
+      --green: #5cf2a0;
+      --red: #ff6b6b;
+      --ink: #e8f4f8;
+      --ink-dim: #5f7c88;
+      --line: rgba(79, 224, 255, 0.14);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--void);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      overflow: hidden;
+    }
+
+    .display {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyan-dim);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .field {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(79, 224, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 224, 255, 0.04) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 30%, transparent 92%);
+    }
+
+    /* ---------- shell ---------- */
+    .shell {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 26px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+    }
+
+    .brand-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--cyan);
+      position: relative;
+      box-shadow: 0 0 10px var(--cyan-soft);
+    }
+
+    .brand-mark::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      font-size: 11.5px;
+    }
+
+    .conn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .dot.live {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    #clock {
+      color: var(--ink-dim);
+    }
+
+    main {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .view.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* ---------- HUB / radial menu ---------- */
+    #view-hub {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hub-wrap {
+      position: relative;
+      width: min(80vh, 640px);
+      aspect-ratio: 1/1;
+    }
+
+    .hub-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .wedge {
+      cursor: pointer;
+    }
+
+    .wedge path {
+      fill: rgba(79, 224, 255, 0.05);
+      stroke: var(--line);
+      stroke-width: 1;
+      transition: fill 0.2s, stroke 0.2s;
+    }
+
+    .wedge:hover path,
+    .wedge:focus path {
+      fill: rgba(79, 224, 255, 0.16);
+      stroke: var(--cyan);
+    }
+
+    .wedge .wedge-label {
+      fill: var(--ink-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-anchor: middle;
+      pointer-events: none;
+      transition: fill 0.2s;
+    }
+
+    .wedge:hover .wedge-label {
+      fill: var(--cyan);
+    }
+
+    .wedge .wedge-sub {
+      fill: var(--ink-dim);
+      font-size: 8.5px;
+      text-anchor: middle;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .tick {
+      stroke: rgba(79, 224, 255, 0.28);
+      stroke-width: 1;
+    }
+
+    .tick.major {
+      stroke: rgba(79, 224, 255, 0.55);
+      stroke-width: 1.4;
+    }
+
+    .ring-static {
+      fill: none;
+      stroke: var(--line);
+    }
+
+    .ring-spin {
+      fill: none;
+      stroke: rgba(79, 224, 255, 0.25);
+      stroke-dasharray: 2 10;
+      transform-origin: 320px 320px;
+      animation: spin 50s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .core-group {
+      pointer-events: none;
+    }
+
+    .core-glow {
+      fill: url(#coreGrad);
+      animation: breathe 3.4s ease-in-out infinite;
+      transform-origin: 320px 320px;
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: 0.6;
+        transform: scale(0.94);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .core-ring {
+      fill: none;
+      stroke: var(--cyan);
+      stroke-width: 1.2;
+      opacity: 0.8;
+    }
+
+    .core-label {
+      fill: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      text-anchor: middle;
+      letter-spacing: 0.12em;
+    }
+
+    .core-sub {
+      fill: var(--ink-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9.5px;
+      text-anchor: middle;
+      letter-spacing: 0.08em;
+    }
+
+    .hub-caption {
+      text-align: center;
+      margin-top: 22px;
+      color: var(--ink-dim);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .hub-caption b {
+      color: var(--cyan);
+      font-weight: 500;
+    }
+
+    /* ---------- page shell (non-hub views) ---------- */
+    .page-inner {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0 5vw 26px;
+      overflow: hidden;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 0 18px;
+      flex-shrink: 0;
+    }
+
+    .hub-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11.5px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .hub-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .hub-btn .ring-ico {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+    }
+
+    .page-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 19px;
+      letter-spacing: 0.04em;
+    }
+
+    .page-title .n {
+      color: var(--cyan);
+    }
+
+    .mininav {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .mininav button {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      padding: 6px 11px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .mininav button.active,
+    .mininav button:hover {
+      color: var(--cyan);
+      border-color: var(--cyan-dim);
+    }
+
+    .content-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      gap: 18px;
+      overflow-y: auto;
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 2px;
+      padding: 16px 18px;
+    }
+
+    .card-title {
+      font-size: 10.5px;
+      color: var(--ink-dim);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 12.5px;
+      border-bottom: 1px dashed rgba(79, 224, 255, 0.08);
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .row .k {
+      color: var(--ink-dim);
+    }
+
+    .v.up {
+      color: var(--green);
+    }
+
+    .v.down {
+      color: var(--red);
+    }
+
+    .v.warn {
+      color: var(--amber);
+    }
+
+    .badge {
+      font-size: 9.5px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--cyan-dim);
+      color: var(--cyan);
+    }
+
+    .badge.buy {
+      border-color: rgba(92, 242, 160, 0.4);
+      color: var(--green);
+    }
+
+    .badge.sell {
+      border-color: rgba(255, 107, 107, 0.4);
+      color: var(--red);
+    }
+
+    .badge.wait {
+      border-color: rgba(255, 178, 74, 0.4);
+      color: var(--amber);
+    }
+
+    /* TRADING page */
+    #grid-trading {
+      grid-template-columns: 1.3fr 1fr;
+    }
+
+    @media (max-width:900px) {
+      #grid-trading {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .instr-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .instr-head .name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+    }
+
+    .instr-head .price {
+      font-size: 16px;
+    }
+
+    .ict-line {
+      font-size: 11.5px;
+      color: var(--ink-dim);
+      padding: 4px 0;
+    }
+
+    .ict-line b {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* CONSOLE page */
+    #view-console .page-inner {
+      padding-bottom: 0;
+    }
+
+    .chat-log {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 6px 0 16px;
+    }
+
+    .msg {
+      max-width: 640px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+    }
+
+    .msg .who {
+      font-size: 10px;
+      color: var(--ink-dim);
+      margin-bottom: 4px;
+    }
+
+    .msg.user .who {
+      text-align: right;
+    }
+
+    .msg .bubble {
+      padding: 11px 15px;
+      border-radius: 2px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .msg.user .bubble {
+      background: rgba(79, 224, 255, 0.06);
+      border-color: var(--cyan-dim);
+    }
+
+    .msg.system .bubble {
+      color: var(--ink-dim);
+      font-size: 12px;
+      border-style: dashed;
+    }
+
+    .cmd-row {
+      display: flex;
+      gap: 10px;
+      padding: 14px 0 20px;
+      flex-shrink: 0;
+    }
+
+    .cmd-row input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13.5px;
+      padding: 12px 15px;
+      border-radius: 2px;
+    }
+
+    .cmd-row input:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+
+    .cmd-send {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      font-weight: 500;
+      background: var(--cyan);
+      color: #03181e;
+      padding: 0 22px;
+      border-radius: 2px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .quick-cmds {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-bottom: 6px;
+      flex-shrink: 0;
+    }
+
+    .qc {
+      font-size: 10.5px;
+      color: var(--ink-dim);
+      border: 1px solid var(--line);
+      padding: 5px 11px;
+      border-radius: 12px;
+      cursor: pointer;
+      background: none;
+    }
+
+    .qc:hover {
+      color: var(--cyan);
+      border-color: var(--cyan-dim);
+    }
+
+    /* DIAGNOSTICS page */
+    #grid-diagnostics {
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: min-content;
+    }
+
+    @media (max-width:900px) {
+      #grid-diagnostics {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gauge {
+      text-align: center;
+    }
+
+    .gauge .val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 26px;
+      color: var(--cyan);
+    }
+
+    .gauge .lbl {
+      font-size: 10px;
+      color: var(--ink-dim);
+      margin-top: 4px;
+    }
+
+    .wave-wrap {
+      width: 100%;
+      height: 60px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .wave-track {
+      display: flex;
+      width: 200%;
+      height: 100%;
+      animation: slide 4s linear infinite;
+    }
+
+    .wave-track svg {
+      width: 50%;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    @keyframes slide {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* AGENTS page */
+    .agent-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .agent-row:last-child {
+      border-bottom: none;
+    }
+
+    .agent-name {
+      font-size: 13px;
+    }
+
+    .agent-desc {
+      font-size: 11px;
+      color: var(--ink-dim);
+      margin-top: 3px;
+    }
+
+    .agent-state {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10.5px;
+    }
+
+    /* LOGS page */
+    .log-entry {
+      font-size: 11.5px;
+      line-height: 1.7;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .log-entry .t {
+      color: var(--ink-dim);
+      margin-right: 8px;
+    }
+
+    .log-entry.info .lv {
+      color: var(--cyan);
+    }
+
+    .log-entry.ok .lv {
+      color: var(--green);
+    }
+
+    .log-entry.warn .lv {
+      color: var(--amber);
+    }
+
+    .log-entry.err .lv {
+      color: var(--red);
+    }
+
+    /* SETTINGS page */
+    #grid-settings {
+      grid-template-columns: 1fr 1fr;
+      max-width: 900px;
+    }
+
+    @media (max-width:760px) {
+      #grid-settings {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field-row {
+      margin-bottom: 14px;
+    }
+
+    .field-row label {
+      display: block;
+      font-size: 10.5px;
+      color: var(--ink-dim);
+      margin-bottom: 6px;
+    }
+
+    .field-row input[type=text],
+    .field-row select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      padding: 9px 12px;
+      border-radius: 2px;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px dashed rgba(79, 224, 255, 0.08);
+      font-size: 12.5px;
+    }
+
+    .switch {
+      width: 36px;
+      height: 19px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .switch::after {
+      content: '';
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--ink-dim);
+      top: 2px;
+      left: 2px;
+      transition: all 0.2s;
+    }
+
+    .switch.on {
+      border-color: var(--cyan);
+    }
+
+    .switch.on::after {
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      left: 19px;
+    }
+
+    .save-btn {
+      margin-top: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      background: var(--cyan);
+      color: #03181e;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="field"></div>
+
+  <div class="shell">
+    <header>
+      <div class="brand"><span class="brand-mark"></span>M.A.R.C.I</div>
+      <div class="hdr-right">
+        <div class="conn"><span class="dot" id="connDot"></span><span id="connLabel">LOCAL SCRIPT — NOT CONNECTED</span>
+        </div>
+        <div id="clock">--:--:--</div>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- HUB -->
+      <div class="view active" id="view-hub">
+        <div class="hub-wrap">
+          <svg id="hubSvg" viewBox="0 0 640 640"></svg>
+        </div>
+        <div class="hub-caption">Select a system to open — <b>M.A.R.C.I</b> is standing by</div>
+      </div>
+
+      <!-- TRADING -->
+      <div class="view" id="view-trading">
+        <div class="page-inner">
+          <div class="page-head">
+            <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+            <div class="page-title">TRADING <span class="n">// 01</span></div>
+            <div class="mininav" data-mininav></div>
+          </div>
+          <div class="content-grid" id="grid-trading">
+            <div class="card" id="card-instrument-0">
+              <div class="card-title"><span id="instr0-symbol">--</span> <span class="badge wait"
+                  id="instr0-badge">LOADING</span></div>
+              <div class="instr-head">
+                <div class="name" id="instr0-name">--</div>
+                <div class="price" id="instr0-price">--</div>
+              </div>
+              <div class="ict-line" id="instr0-structure">--</div>
+              <div class="ict-line" id="instr0-fvg">--</div>
+              <div class="ict-line" id="instr0-liquidity">--</div>
+              <div class="ict-line" id="instr0-killzone">--</div>
+              <div class="ict-line" id="instr0-stop">--</div>
+            </div>
+            <div class="card" id="card-instrument-1">
+              <div class="card-title"><span id="instr1-symbol">--</span> <span class="badge wait"
+                  id="instr1-badge">LOADING</span></div>
+              <div class="instr-head">
+                <div class="name" id="instr1-name">--</div>
+                <div class="price" id="instr1-price">--</div>
+              </div>
+              <div class="ict-line" id="instr1-structure">--</div>
+              <div class="ict-line" id="instr1-fvg">--</div>
+              <div class="ict-line" id="instr1-liquidity">--</div>
+              <div class="ict-line" id="instr1-killzone">--</div>
+              <div class="ict-line" id="instr1-stop">--</div>
+            </div>
+            <div class="card">
+              <div class="card-title">ACCOUNT</div>
+              <div class="row"><span class="k">Balance</span><span class="v" id="acct-balance">--</span></div>
+              <div class="row"><span class="k">Equity</span><span class="v up" id="acct-equity">--</span></div>
+              <div class="row"><span class="k">Floating P/L</span><span class="v up" id="acct-floating">--</span></div>
+              <div class="row"><span class="k">Scaling rule</span><span class="v">20 / 40 / 40</span></div>
+            </div>
+            <div class="card">
+              <div class="card-title">OPEN POSITIONS</div>
+              <div id="positions-list">
+                <div class="row"><span class="k">None open</span><span class="v">—</span></div>
+              </div>
+            </div>
+            <div class="card" style="grid-column:1/-1;">
+              <div class="card-title">TODAY'S SIGNALS <span id="signalsCount">0</span></div>
+              <div id="signalsList">
+                <div class="row"><span class="k">No signals yet today</span><span class="v">—</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+        </div>
+      </div>
+  </div>
+
+  <!-- CONSOLE -->
+  <div class="view" id="view-console">
+    <div class="page-inner">
+      <div class="page-head">
+        <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+        <div class="page-title">CONSOLE <span class="n">// 02</span></div>
+        <div class="mininav" data-mininav></div>
+      </div>
+      <div class="chat-log" id="chatLog">
+        <div class="msg system">
+          <div class="bubble">Local-script mode. Replace sendToM.A.R.C.I() in the source to wire this to your Python
+            backend or, later, your webhook.</div>
+        </div>
+        <div class="msg M.A.R.C.I">
+          <div class="who">M.A.R.C.I</div>
+          <div class="bubble">Standing by. Ask for a bias check, an account summary, or type a raw command.</div>
+        </div>
+      </div>
+      <div class="quick-cmds">
+        <button class="qc" data-cmd="/status">/status</button>
+        <button class="qc" data-cmd="/bias xauusd">/bias xauusd</button>
+        <button class="qc" data-cmd="/positions">/positions</button>
+        <button class="qc" data-cmd="/pause">/pause</button>
+      </div>
+      <form class="cmd-row" id="cmdForm">
+        <input type="text" id="cmdInput" placeholder="Type a command or ask M.A.R.C.I something…" autocomplete="off">
+        <button type="submit" class="cmd-send">SEND</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DIAGNOSTICS -->
+  <div class="view" id="view-diagnostics">
+    <div class="page-inner">
+      <div class="page-head">
+        <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+        <div class="page-title">DIAGNOSTICS <span class="n">// 03</span></div>
+        <div class="mininav" data-mininav></div>
+      </div>
+      <div class="content-grid" id="grid-diagnostics">
+        <div class="card gauge">
+          <div class="val">42<span style="font-size:13px">ms</span></div>
+          <div class="lbl">MCP LATENCY</div>
+        </div>
+        <div class="card gauge">
+          <div class="val">99.4<span style="font-size:13px">%</span></div>
+          <div class="lbl">UPTIME, 30D</div>
+        </div>
+        <div class="card gauge">
+          <div class="val">6</div>
+          <div class="lbl">THREADS MONITORED</div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-title">MCP DATA FEED <span id="mcpState">CONNECTED</span></div>
+          <div class="wave-wrap">
+            <div class="wave-track">
+              <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+                <polyline
+                  points="0,30 20,30 28,10 36,50 44,30 70,30 78,15 86,45 94,30 140,30 148,8 156,52 164,30 220,30 228,18 236,42 244,30 300,30"
+                  fill="none" stroke="#4fe0ff" stroke-width="1.5" />
+              </svg>
+              <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+                <polyline
+                  points="0,30 20,30 28,10 36,50 44,30 70,30 78,15 86,45 94,30 140,30 148,8 156,52 164,30 220,30 228,18 236,42 244,30 300,30"
+                  fill="none" stroke="#4fe0ff" stroke-width="1.5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-title">CONNECTED TOOLS</div>
+          <div class="row"><span class="k">metatrader:get_candles_latest</span><span class="v up">OK</span></div>
+          <div class="row"><span class="k">metatrader:get_symbol_price</span><span class="v up">OK</span></div>
+          <div class="row"><span class="k">metatrader:get_account_info</span><span class="v up">OK</span></div>
+          <div class="row"><span class="k">Telegram execution bot</span><span class="v warn">MOCK — NOT CONNECTED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="view" id="view-agents">
+    <div class="page-inner">
+      <div class="page-head">
+        <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+        <div class="page-title">AGENTS <span class="n">// 04</span></div>
+        <div class="mininav" data-mininav></div>
+      </div>
+      <div class="content-grid" style="grid-template-columns:1fr;">
+        <div class="card">
+          <div class="agent-row">
+            <div>
+              <div class="agent-name">GPT bias validation</div>
+              <div class="agent-desc">Cross-checks directional bias before the execution bot acts on it</div>
+            </div>
+            <div class="agent-state"><span class="dot live" style="animation:none;"></span>RUNNING</div>
+          </div>
+          <div class="agent-row">
+            <div>
+              <div class="agent-name">Telegram execution bot</div>
+              <div class="agent-desc">Places and manages orders across the 20/40/40 scaled accounts</div>
+            </div>
+            <div class="agent-state"><span class="dot"
+                style="animation:none; background:var(--amber); box-shadow:0 0 8px var(--amber);"></span>MOCK MODE</div>
+          </div>
+          <div class="agent-row">
+            <div>
+              <div class="agent-name">Read-only mirror account</div>
+              <div class="agent-desc">Bot-controlled mirror used to confirm execution across other accounts</div>
+            </div>
+            <div class="agent-state"><span class="dot live" style="animation:none;"></span>RUNNING</div>
+          </div>
+          <div class="agent-row">
+            <div>
+              <div class="agent-name">Signal archiver</div>
+              <div class="agent-desc">Files and timestamps every analysed setup for later review</div>
+            </div>
+            <div class="agent-state"><span class="dot live" style="animation:none;"></span>RUNNING</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGS -->
+  <div class="view" id="view-logs">
+    <div class="page-inner">
+      <div class="page-head">
+        <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+        <div class="page-title">LOGS <span class="n">// 05</span></div>
+        <div class="mininav" data-mininav></div>
+      </div>
+      <div class="content-grid" style="grid-template-columns:1fr;">
+        <div class="card" style="max-height:100%; overflow-y:auto;">
+          <div class="card-title">SYSTEM LOG <span id="logClear" style="cursor:pointer;">CLEAR</span></div>
+          <div id="logFeed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="view" id="view-settings">
+    <div class="page-inner">
+      <div class="page-head">
+        <button class="hub-btn" data-hub><span class="ring-ico"></span>HUB</button>
+        <div class="page-title">SETTINGS <span class="n">// 06</span></div>
+        <div class="mininav" data-mininav></div>
+      </div>
+      <div class="content-grid" id="grid-settings">
+        <div class="card">
+          <div class="card-title">BACKEND CONNECTION</div>
+          <div class="field-row">
+            <label>Mode</label>
+            <select id="backendMode">
+              <option value="local">Local Python script</option>
+              <option value="webhook">Webhook / hosted API</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label>Endpoint URL</label>
+            <input type="text" id="endpointUrl" placeholder="http:/localhost/:8787">
+          </div>
+          <div class="field-row">
+            <label>API key (from your .env)</label>
+            <input type="text" id="apiKeyInput" placeholder="the value of MARCI_API_KEY">
+          </div>
+          <button class="save-btn" id="saveEndpoint">SAVE &amp; TEST CONNECTION</button>
+        </div>
+        <div class="card">
+          <div class="card-title">APPROVAL GATES</div>
+          <div class="toggle-row"><span>Auto-send drafted replies</span>
+            <div class="switch" data-switch></div>
+          </div>
+          <div class="toggle-row"><span>Auto-execute trade entries</span>
+            <div class="switch" data-switch></div>
+          </div>
+          <div class="toggle-row"><span>Ask before any irreversible action</span>
+            <div class="switch on" data-switch></div>
+          </div>
+          <div class="toggle-row"><span>Daily briefing at session open</span>
+            <div class="switch on" data-switch></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </main>
+  </div>
+
+  <script>
+    /* ============================================================
+       BACKEND CONNECTION
+       This talks to the FastAPI server (main.py). Endpoint + API key
+       are set on the Settings page and saved in localStorage so you
+       only have to enter them once per browser.
+       If the backend is unreachable, every function below falls back
+       to mock data so the GUI still works while you're setting it up.
+    ============================================================ */
+    const MARCI_CONFIG = {
+      endpoint: localStorage.getItem('MARCI_endpoint') || 'http://localhost:8787',
+      apiKey: localStorage.getItem('MARCI_api_key') || ''
+    };
+
+    async function marciFetch(path, options = {}) {
+      const res = await fetch(MARCI_CONFIG.endpoint + path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': MARCI_CONFIG.apiKey,
+          ...(options.headers || {})
+        }
+      });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json();
+    }
+
+    async function sendToMarci(command) {
+      try {
+        const data = await marciFetch('/command', { method: 'POST', body: JSON.stringify({ command }) });
+        setConnLive(true);
+        return data.reply;
+      } catch (err) {
+        setConnLive(false);
+        const canned = {
+          "/status": "All systems nominal. Watching XAUUSDm and USTECm. No trades in the last 20 minutes.",
+          "/positions": "No open positions right now.",
+          "/pause": "Paused. I won't act on any signals until you send /resume."
+        };
+        if (canned[command.toLowerCase()]) return canned[command.toLowerCase()] + ' (mock — backend unreachable)';
+        if (command.toLowerCase().startsWith('/bias')) return "XAUUSDm: 4H bullish, above the last daily FVG. Waiting on a London sweep before confirming entry. (mock — backend unreachable)";
+        return `Backend unreachable at ${MARCI_CONFIG.endpoint} — this is a placeholder reply. Check Settings.`;
+      }
+    }
+
+    function setConnLive(isLive) {
+      const dot = document.getElementById('connDot');
+      const label = document.getElementById('connLabel');
+      if (isLive) {
+        dot.classList.add('live');
+        label.textContent = 'BACKEND CONNECTED';
+      } else {
+        dot.classList.remove('live');
+        label.textContent = 'BACKEND UNREACHABLE — USING MOCK DATA';
+      }
+    }
+
+    async function pingBackend() {
+      try {
+        await marciFetch('/ping');
+        setConnLive(true);
+      } catch (err) {
+        setConnLive(false);
+      }
+    }
+
+    /* pull live data into the Trading / Diagnostics / Agents pages,
+       falling back to whatever is already in the HTML (the mock
+       content) if the backend isn't reachable */
+    async function refreshTradingPage() {
+      try {
+        const [account, watchlist, positions] = await Promise.all([
+          marciFetch('/account'), marciFetch('/watchlist'), marciFetch('/positions')
+        ]);
+        setConnLive(true);
+
+        document.getElementById('acct-balance').textContent = account.balance?.toFixed(2) ?? '--';
+        document.getElementById('acct-equity').textContent = account.equity?.toFixed(2) ?? '--';
+        const fpl = account.floating_pl ?? 0;
+        const fplEl = document.getElementById('acct-floating');
+        fplEl.textContent = (fpl >= 0 ? '+' : '') + fpl.toFixed(2);
+        fplEl.className = 'v ' + (fpl >= 0 ? 'up' : 'down');
+
+        (watchlist.instruments || []).forEach((inst, i) => {
+          if (i > 1) return;
+          const badge = document.getElementById(`instr${i}-badge`);
+          document.getElementById(`instr${i}-symbol`).textContent = inst.symbol;
+          document.getElementById(`instr${i}-name`).textContent = inst.symbol;
+          document.getElementById(`instr${i}-price`).textContent = inst.price?.toLocaleString(undefined, { minimumFractionDigits: 2 }) ?? '--';
+          document.getElementById(`instr${i}-structure`).innerHTML = `Structure: <b>${inst.structure}</b>`;
+          document.getElementById(`instr${i}-fvg`).innerHTML = `FVG: <b>${inst.fvg}</b>`;
+          document.getElementById(`instr${i}-liquidity`).innerHTML = `Liquidity: <b>${inst.liquidity}</b>`;
+          document.getElementById(`instr${i}-killzone`).innerHTML = `Kill zone: <b>${inst.kill_zone}</b>`;
+          document.getElementById(`instr${i}-stop`).innerHTML = `Stop: <b>${inst.stop_reference ?? 'n/a'}</b>`;
+          badge.textContent = inst.bias === 'buy' ? 'BUY BIAS' : inst.bias === 'sell' ? 'SELL BIAS' : 'WAIT';
+          badge.className = 'badge ' + (inst.bias === 'buy' ? 'buy' : inst.bias === 'sell' ? 'sell' : 'wait');
+
+          if (inst.bias === 'buy' || inst.bias === 'sell') addSignal(inst);
+        });
+
+        const posList = document.getElementById('positions-list');
+        if (positions.positions && positions.positions.length > 0) {
+          posList.innerHTML = positions.positions.map(p =>
+            `<div class="row"><span class="k">${p.symbol || 'Position'}</span><span class="v">${JSON.stringify(p)}</span></div>`
+          ).join('');
+        } else {
+          posList.innerHTML = '<div class="row"><span class="k">None open</span><span class="v">—</span></div>';
+        }
+
+        addLog('ok', 'trading data refreshed from backend');
+      } catch (err) {
+        setConnLive(false);
+        addLog('err', 'trading refresh failed: ' + err.message);
+      }
+    }
+
+    /* ---------- daily signals log, clears at local midnight ---------- */
+    function todayKey() {
+      const d = new Date();
+      return `MARCI_signals_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    }
+    function loadSignals() {
+      const raw = localStorage.getItem(todayKey());
+      return raw ? JSON.parse(raw) : [];
+    }
+    function saveSignals(list) { localStorage.setItem(todayKey(), JSON.stringify(list)); }
+    function addSignal(inst) {
+      const list = loadSignals();
+      const last = list[list.length - 1];
+      if (last && last.symbol === inst.symbol && last.bias === inst.bias && last.price === inst.price) return;
+      list.push({
+        symbol: inst.symbol, bias: inst.bias, price: inst.price,
+        time: new Date().toLocaleTimeString('en-GB', { hour12: false })
+      });
+      saveSignals(list);
+      renderSignals();
+    }
+    function renderSignals() {
+      const list = loadSignals();
+      document.getElementById('signalsCount').textContent = list.length;
+      const el = document.getElementById('signalsList');
+      if (list.length === 0) {
+        el.innerHTML = '<div class="row"><span class="k">No signals yet today</span><span class="v">—</span></div>';
+        return;
+      }
+      el.innerHTML = list.slice().reverse().map(s =>
+        `<div class="row"><span class="k">${s.time} — ${s.symbol}</span><span class="v ${s.bias === 'buy' ? 'up' : 'down'}">${s.bias.toUpperCase()} @ ${s.price}</span></div>`
+      ).join('');
+    }
+    function purgeOldSignalLogs() {
+      const keep = todayKey();
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('MARCI_signals_') && k !== keep) localStorage.removeItem(k);
+      });
+    }
+    function scheduleMidnightClear() {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+      setTimeout(() => { purgeOldSignalLogs(); renderSignals(); scheduleMidnightClear(); }, next - now);
+    }
+    purgeOldSignalLogs();
+    renderSignals();
+    scheduleMidnightClear();
+
+
+    async function refreshDiagnosticsPage() {
+      try {
+        const data = await marciFetch('/diagnostics');
+        setConnLive(true);
+        addLog('ok', 'diagnostics refreshed from backend');
+      } catch (err) {
+        setConnLive(false);
+      }
+    }
+
+    /* ---------- pages / navigation ---------- */
+    const PAGES = [
+      { id: 'trading', label: 'TRADING', sub: 'MT5 · ICT' },
+      { id: 'console', label: 'CONSOLE', sub: 'COMMAND' },
+      { id: 'diagnostics', label: 'DIAGNOSTICS', sub: 'SYSTEM' },
+      { id: 'agents', label: 'AGENTS', sub: 'PIPELINE' },
+      { id: 'logs', label: 'LOGS', sub: 'ACTIVITY' },
+      { id: 'settings', label: 'SETTINGS', sub: 'CONFIG' },
+    ];
+
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + id).classList.add('active');
+      document.querySelectorAll('.mininav').forEach(nav => {
+        nav.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.page === id));
+      });
+    }
+
+    document.querySelectorAll('[data-hub]').forEach(btn => btn.addEventListener('click', () => showView('hub')));
+
+    /* build mini-navs */
+    document.querySelectorAll('[data-mininav]').forEach(nav => {
+      PAGES.forEach(p => {
+        const b = document.createElement('button');
+        b.textContent = p.label; b.dataset.page = p.id;
+        b.addEventListener('click', () => showView(p.id));
+        nav.appendChild(b);
+      });
+    });
+
+    /* ---------- build radial hub SVG ---------- */
+    const svg = document.getElementById('hubSvg');
+    const NS = "http://www.w3.org/2000/svg";
+    const CX = 320, CY = 320, R_OUT = 300, R_IN = 175, GAP = 1.4;
+
+    function polar(cx, cy, r, deg) {
+      const a = (deg - 90) * Math.PI / 180;
+      return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+    }
+    function wedgePath(rOut, rIn, a0, a1) {
+      const p0 = polar(CX, CY, rOut, a1), p1 = polar(CX, CY, rOut, a0);
+      const p2 = polar(CX, CY, rIn, a0), p3 = polar(CX, CY, rIn, a1);
+      const large = (a1 - a0) <= 180 ? 0 : 1;
+      return `M ${p0.x} ${p0.y} A ${rOut} ${rOut} 0 ${large} 0 ${p1.x} ${p1.y} L ${p2.x} ${p2.y} A ${rIn} ${rIn} 0 ${large} 1 ${p3.x} ${p3.y} Z`;
+    }
+    function el(tag, attrs) {
+      const e = document.createElementNS(NS, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    /* defs: core gradient */
+    const defs = el('defs', {});
+    const grad = el('radialGradient', { id: 'coreGrad', cx: '50%', cy: '50%', r: '50%' });
+    grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#4fe0ff', 'stop-opacity': '0.9' }));
+    grad.appendChild(el('stop', { offset: '65%', 'stop-color': '#4fe0ff', 'stop-opacity': '0.15' }));
+    grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#4fe0ff', 'stop-opacity': '0' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    /* outer decorative rings */
+    svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 14, class: 'ring-static' }));
+    svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 14, class: 'ring-spin' }));
+
+    /* tick marks around outer ring */
+    const tickGroup = el('g', {});
+    for (let deg = 0; deg < 360; deg += 6) {
+      const major = deg % 30 === 0;
+      const p1 = polar(CX, CY, R_OUT + 22, deg);
+      const p2 = polar(CX, CY, R_OUT + (major ? 34 : 28), deg);
+      tickGroup.appendChild(el('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, class: major ? 'tick major' : 'tick' }));
+    }
+    svg.appendChild(tickGroup);
+
+    /* wedges */
+    const seg = 360 / PAGES.length;
+    PAGES.forEach((p, i) => {
+      const a0 = i * seg + GAP / 2;
+      const a1 = (i + 1) * seg - GAP / 2;
+      const mid = (a0 + a1) / 2;
+      const g = el('g', { class: 'wedge', tabindex: '0', role: 'button', 'aria-label': p.label });
+      g.appendChild(el('path', { d: wedgePath(R_OUT, R_IN, a0, a1) }));
+      const labelPos = polar(CX, CY, (R_OUT + R_IN) / 2 + 6, mid);
+      const subPos = polar(CX, CY, (R_OUT + R_IN) / 2 - 16, mid);
+      const t1 = el('text', { x: labelPos.x, y: labelPos.y, class: 'wedge-label' }); t1.textContent = p.label;
+      const t2 = el('text', { x: subPos.x, y: subPos.y, class: 'wedge-sub' }); t2.textContent = p.sub;
+      g.appendChild(t1); g.appendChild(t2);
+      g.addEventListener('click', () => showView(p.id));
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showView(p.id); });
+      svg.appendChild(g);
+    });
+
+    /* inner divider ring */
+    svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN, class: 'ring-static' }));
+
+    /* core */
+    const coreGroup = el('g', { class: 'core-group' });
+    coreGroup.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN - 8, class: 'core-glow' }));
+    coreGroup.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN - 30, class: 'core-ring' }));
+    coreGroup.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN - 60, class: 'core-ring', opacity: '0.5' }));
+    const clabel = el('text', { x: CX, y: CY - 2, class: 'core-label' }); clabel.textContent = 'M.A.R.C.I';
+    const csub = el('text', { x: CX, y: CY + 16, class: 'core-sub' }); csub.textContent = 'SYSTEM ONLINE';
+    coreGroup.appendChild(clabel); coreGroup.appendChild(csub);
+    svg.appendChild(coreGroup);
+
+    /* ---------- clock ---------- */
+    function tickClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false }); }
+    setInterval(tickClock, 1000); tickClock();
+
+    /* ---------- console ---------- */
+    const chatLog = document.getElementById('chatLog');
+    function addMessage(who, text) {
+      const wrap = document.createElement('div'); wrap.className = 'msg ' + who;
+      wrap.innerHTML = `<div class="who">${who === 'user' ? 'YOU' : 'M.A.R.C.I'}</div><div class="bubble"></div>`;
+      wrap.querySelector('.bubble').textContent = text;
+      chatLog.appendChild(wrap); chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    function addLog(level, text) {
+      const feed = document.getElementById('logFeed');
+      const e = document.createElement('div'); e.className = 'log-entry ' + level;
+      const t = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      e.innerHTML = `<span class="t">${t}</span><span class="lv">${level.toUpperCase()}</span> ${text}`;
+      feed.prepend(e);
+    }
+    async function handleCommand(text) {
+      if (!text.trim()) return;
+      addMessage('user', text); addLog('info', `command sent: "${text}"`);
+      try {
+        const reply = await sendToMarci(text.trim());
+        addMessage('M.A.R.C.I', reply); addLog('ok', 'response received');
+      } catch (err) {
+        addMessage('system', 'Could not reach backend.'); addLog('err', 'backend unreachable: ' + err.message);
+      }
+    }
+    document.getElementById('cmdForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const val = document.getElementById('cmdInput').value;
+      document.getElementById('cmdInput').value = '';
+      handleCommand(val);
+    });
+    document.querySelectorAll('.qc').forEach(b => b.addEventListener('click', () => handleCommand(b.dataset.cmd)));
+    document.getElementById('logClear').addEventListener('click', () => document.getElementById('logFeed').innerHTML = '');
+
+    addLog('info', 'M.A.R.C.I interface initialised');
+    addLog('warn', 'backend not connected — running in mock mode');
+
+    /* ---------- settings toggles ---------- */
+    document.querySelectorAll('[data-switch]').forEach(sw => {
+      sw.addEventListener('click', () => sw.classList.toggle('on'));
+    });
+    document.getElementById('endpointUrl').value = MARCI_CONFIG.endpoint;
+    document.getElementById('apiKeyInput').value = MARCI_CONFIG.apiKey;
+
+    document.getElementById('saveEndpoint').addEventListener('click', async () => {
+      const url = document.getElementById('endpointUrl').value.trim().replace(/\/$/, '');
+      const key = document.getElementById('apiKeyInput').value.trim();
+      MARCI_CONFIG.endpoint = url;
+      MARCI_CONFIG.apiKey = key;
+      localStorage.setItem('MARCI_endpoint', url);
+      localStorage.setItem('MARCI_api_key', key);
+      addLog('info', `backend endpoint saved: ${url}`);
+      await pingBackend();
+    });
+
+    /* check connection on load, and refresh the relevant page's data
+       whenever you navigate to it */
+    pingBackend();
+    const _origShowView = showView;
+    showView = function (id) {
+      _origShowView(id);
+      if (id === 'trading') refreshTradingPage();
+      if (id === 'diagnostics') refreshDiagnosticsPage();
+    };
+  </script>
+
+</body>
+
+</html>
